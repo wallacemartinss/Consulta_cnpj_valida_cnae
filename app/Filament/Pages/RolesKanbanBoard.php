@@ -15,14 +15,22 @@ class RolesKanbanBoard extends KanbanBoard
     protected static ?string $title = 'Funções do Kanban';
     protected static ?string $navigationLabel = 'Funções do Kanban';
     protected static ?int $navigationSort = 3;
+
+      
+    protected static string $statusEnum = UserRole::class;
+    protected static string $model = User::class;
+
     protected static string $recordTitleAttribute = 'name';
     protected static string $recordStatusAttribute = 'role';
-    
-    protected static string $statusEnum = UserRole::class;
+  
 
+    protected function statuses(): Collection
+    {
+        return UserRole::statuses();
+    }
     protected function records(): Collection
     {
-        return User::where('status', UserStatus::Active)->ordered()->get();
+        return User::where('status', UserStatus::Ativo)->ordered()->get();
     }
 
     public function onStatusChanged(int $recordId, string $status, array $fromOrderedIds, array $toOrderedIds): void

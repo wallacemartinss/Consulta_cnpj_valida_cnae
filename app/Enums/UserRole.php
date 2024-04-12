@@ -8,8 +8,8 @@ enum UserRole: string
 {
     use IsKanbanStatus;
 
-    case User = 'user';
-    case Admin = 'admin';
+    case Usuário = 'user';
+    case Administrador = 'admin';
 
     public function getTitle(): string
     {

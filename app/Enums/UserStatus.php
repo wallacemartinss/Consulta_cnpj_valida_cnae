@@ -8,15 +8,16 @@ enum UserStatus: string
 {
     use IsKanbanStatus;
 
-    case Pending = 'pending';
-    case Active = 'active';
-    case Inactive = 'inactive';
+    case Pendente = 'Pending';
+    case Ativo = 'Active';
+    case Inativo = 'Inactive';
 
     public static function kanbanCases(): array
     {
         return [
-            static::Pending,
-            static::Active,
+            static::Pendente,
+            static::Ativo,
+            static::Inativo,
         ];
     }
 

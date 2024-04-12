@@ -13,9 +13,25 @@ class UsersKanbanBoard extends KanbanBoard
     protected static ?string $navigationGroup = 'Usuários e Segurança';
     protected static ?string $title = 'Usuários do Kanban';
     protected static ?string $navigationLabel = 'Usuários do Kanban';
-    protected static string $recordTitleAttribute = 'name';
-    protected static string $recordStatusAttribute = 'Usuários do Kanban';
+    
     protected static ?int $navigationSort = 4;
+
+
     protected static string $model = User::class;
     protected static string $statusEnum = UserStatus::class;
+
+    protected static string $recordTitleAttribute = "name";
+    protected static string $recordStatusAttribute = 'status';
+
+    protected function statuses(): Collection
+    {
+        return UserStatus::statuses();
+    }
+
+    protected function records(): Collection
+    {
+        return User::ordered()->get();
+
+    }
 }
+

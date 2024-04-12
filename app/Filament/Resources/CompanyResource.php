@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use Exception;
 use Carbon\Carbon;
 use Filament\Forms;
+use App\Models\User;
 use Filament\Tables;
 use App\Models\Company;
 use Filament\Forms\Form;
@@ -13,16 +14,19 @@ use Illuminate\Support\Str;
 use Filament\Resources\Resource;
 use App\Models\PermittedActivitie;
 use Illuminate\Support\Facades\Http;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\KeyValue;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Leandrocfe\FilamentPtbrFormFields\Money;
 use Leandrocfe\FilamentPtbrFormFields\Document;
 use App\Filament\Resources\CompanyResource\Pages;
 use Leandrocfe\FilamentPtbrFormFields\PhoneNumber;
+
 
 class CompanyResource extends Resource
 {
@@ -31,11 +35,22 @@ class CompanyResource extends Resource
     protected static ?string $navigationIcon = 'fas-building-user';
     protected static ?string $navigationGroup = 'Empresas e Atividades';
     protected static ?string $navigationLabel = 'Consulta de Empresas';
-    protected static ?string $modelLabel = 'Empresa';
-    protected static ?string $modelLabelPlural = "Consultar Empresas";
+    protected static ?string $modelLabel = 'Consulta Empresa';
+    protected static ?string $modelLabelPlural = "Consultas";
     protected static ?int $navigationSort = 1;
     public static bool $formActionsAreSticky = true;
 
+    public static function getEloquentQuery(): Builder
+    {
+            if(auth()->user()->is_admin === 1){
+                return parent::getEloquentQuery();
+            }else{
+                return parent::getEloquentQuery()->where('user_id', auth()->id());
+            }
+
+        return parent::getEloquentQuery()->where('user_id', auth()->id());
+    }
+    
     public static function form(Form $form): Form
     {
         return $form
@@ -77,7 +92,7 @@ class CompanyResource extends Resource
                                             if (Str::title($cnpjData['estabelecimento']['situacao_cadastral']) === "Baixada" or Str::title($cnpjData['estabelecimento']['situacao_cadastral']) === "Inapta") {
                                                 Notification::make()
                                                     ->title('Atenção!!!')
-                                                    ->body('CNPJ com Porbelmas o mesmo encontra-se ' . Str::title($cnpjData['estabelecimento']['situacao_cadastral']))
+                                                    ->body('CNPJ com Problema o mesmo encontra-se ' . Str::title($cnpjData['estabelecimento']['situacao_cadastral']))
                                                     ->danger()
                                                     ->send();
                                             } else {
@@ -96,7 +111,6 @@ class CompanyResource extends Resource
                                                     $cnpjData['simples']['simples'] = 'Não';
                                                     $cnpjData['simples']['mei'] = 'Não';
                                                 }
-
 
                                                 $set('simple_situation', $cnpjData['simples']['simples']);
                                                 $set('simei_situation', $cnpjData['simples']['mei']);
@@ -185,6 +199,9 @@ class CompanyResource extends Resource
                                         }
                                     })
                             ),
+
+                        Hidden::make('user_id')
+                            ->default(auth()->user()->id),    
 
                         TextInput::make('status')
                             ->label('Situação CNPJ')
@@ -317,6 +334,7 @@ class CompanyResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            
             ->columns([
                 TextColumn::make('released')
                     ->label('Apta para Contato')
@@ -339,6 +357,11 @@ class CompanyResource extends Resource
                     ->alignCenter()
                     ->label('Status CNPJ')
                     ->searchable(),
+                TextColumn::make('user.name')
+                    ->alignCenter()
+                    ->label('Usuário')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('company_address.city')
                     ->label('Cidade')
                     ->alignCenter()
@@ -360,6 +383,15 @@ class CompanyResource extends Resource
                         'Sim' => 'Sim',
                         'Não' => 'Não',
                     ]),
+                    SelectFilter::make('user_id')
+                    ->relationship('user', 'name')
+                    ->label('Usuário')
+                    ->multiple()
+                    ->preload()
+                    ->options([
+                        User::query()->pluck('name', 'id')->toArray()
+                    ])
+                
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

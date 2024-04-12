@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\CompanyAddress;
+use App\Models\SecondaryActivitie;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
 
 class Company extends Model
 {
@@ -15,6 +18,7 @@ class Company extends Model
 
     protected $fillable = [
         'id',
+        'user_id',
         'released',
         'document_number',
         'open_date',
@@ -45,6 +49,9 @@ class Company extends Model
         return $this->HasOne(SecondaryActivitie::class);
     }  
 
-  
-
+    public function user(): belongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+   
 }

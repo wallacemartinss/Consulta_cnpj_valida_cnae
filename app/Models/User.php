@@ -8,9 +8,10 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Spatie\EloquentSortable\SortableTrait;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class User extends Authenticatable implements Sortable
 {
@@ -27,6 +28,7 @@ class User extends Authenticatable implements Sortable
      * @var array<int, string>
      */
     protected $fillable = [
+        'id',
         'name',
         'document_number',
         'email',
@@ -56,12 +58,13 @@ class User extends Authenticatable implements Sortable
             'password' => 'hashed',
         ];
     }
-
     public function user_address(): HasOne
     {
         return $this->hasOne(UserAddress::class);
     }
-
-   
-
+    public function companies(): HasOne
+    {
+        return $this->HasOne(Company::class) ;
+    }
+  
 }

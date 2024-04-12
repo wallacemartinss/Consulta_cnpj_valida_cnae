@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\Company;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -11,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdfor(User::class)->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignIdfor(User::class)->constrained();
             $table->string('document_number')->unique();
             $table->string('released')->nullable();            
             $table->string('open_date')->nullable();
@@ -33,10 +34,15 @@ return new class extends Migration
             $table->string('registration_situation_reason_data')->nullable(); 
             $table->timestamps();
         });
+
+      
     }
+
+    
 
      public function down(): void
     {
         Schema::dropIfExists('companies');
+      
     }
 };

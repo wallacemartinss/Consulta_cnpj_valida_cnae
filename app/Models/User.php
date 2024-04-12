@@ -3,19 +3,21 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserStatus;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Spatie\EloquentSortable\SortableTrait;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Contracts\Database\Eloquent\Builder;
+use Mokhosh\FilamentKanban\Concerns\HasRecentUpdateIndication;
 
 class User extends Authenticatable implements Sortable
 {
-    use HasFactory, Notifiable, SortableTrait, HasRoles;
+    use HasFactory, Notifiable, SortableTrait, HasRoles, HasRecentUpdateIndication;
 
     public $sortable = [
         'order_column_name' => 'order_column',
@@ -32,6 +34,8 @@ class User extends Authenticatable implements Sortable
         'name',
         'document_number',
         'email',
+        'status',
+        'role',
         'order_column',
         'password',
     ];
@@ -56,6 +60,7 @@ class User extends Authenticatable implements Sortable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class,
         ];
     }
     public function user_address(): HasOne

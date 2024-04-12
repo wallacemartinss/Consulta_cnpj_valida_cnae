@@ -19,6 +19,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('is_admin')->default(false);
             $table->string('password');
+            $table->string('status')->default('pending');
+            $table->string('role')->default('user');
             $table->integer('order_column');
             $table->rememberToken();
             $table->timestamps();

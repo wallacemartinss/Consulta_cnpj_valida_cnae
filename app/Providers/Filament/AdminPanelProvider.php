@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
             ])
             ->navigationGroups([
+                'Agendas e Tarefas',
                 'Empresas e Atividades',
                 'Usuários e Segurança',                
             ])

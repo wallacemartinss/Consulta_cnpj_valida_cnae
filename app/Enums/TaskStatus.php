@@ -12,6 +12,8 @@ enum TaskStatus: string
     case Doing = 'doing';
     case Done = 'done';
 
+
+    
     public function getTitle(): string
     {
         return $this->name;

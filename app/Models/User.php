@@ -66,5 +66,14 @@ class User extends Authenticatable implements Sortable
     {
         return $this->HasOne(Company::class) ;
     }
+
+    public static function ignoreTimestamps($should = true)
+    {
+        if ($should) {
+            static::$ignoreTimestampsOn = array_values(array_merge(static::$ignoreTimestampsOn, [static::class]));
+        } else {
+            static::$ignoreTimestampsOn = array_values(array_diff(static::$ignoreTimestampsOn, [static::class]));
+        }
+    }
   
 }

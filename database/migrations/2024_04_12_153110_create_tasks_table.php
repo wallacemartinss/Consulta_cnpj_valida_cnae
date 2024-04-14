@@ -1,8 +1,10 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use App\Models\Task;
+use App\Models\User;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -13,11 +15,11 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->string('company');
+            $table->foreignIdFor(User::class)->constrained();
             $table->string('title');
             $table->text('description');
+            $table->string('company');
             $table->boolean('urgent')->default(false);
-            $table->string('project');
             $table->dateTime('due_date');
             $table->tinyInteger('progress')->default(0);
             $table->string('status')->default('todo');
@@ -26,8 +28,8 @@ return new class extends Migration
         });
 
         Schema::create('task_user', function (Blueprint $table) {
-            $table->foreignId('user_id')->constrained();
-            $table->foreignId('task_id')->constrained();
+            $table->foreignIdFor(User::class)->constrained();
+            $table->foreignIdFor(Task::class)->constrained();
             $table->timestamps();
         });
     }
@@ -37,7 +39,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tasks');
         Schema::dropIfExists('task_user');
+        Schema::dropIfExists('tasks');
+        
     }
 };

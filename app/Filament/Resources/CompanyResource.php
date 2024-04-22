@@ -53,7 +53,8 @@ class CompanyResource extends Resource
     
     public static function form(Form $form): Form
     {
-        return $form
+        $recipient = auth()->user();
+        return $form        
             ->schema([
                 Fieldset::make('Informações Principais da empresa')
                     ->schema([
@@ -71,6 +72,7 @@ class CompanyResource extends Resource
                                             Notification::make()
                                                 ->title('Digite o CNPJ para bucar o fornecedor')
                                                 ->danger()
+                                                ->seconds(20)
                                                 ->send();
                                             return;
                                         }
@@ -90,10 +92,12 @@ class CompanyResource extends Resource
                                             )->throw()->json();
 
                                             if (Str::title($cnpjData['estabelecimento']['situacao_cadastral']) === "Baixada" or Str::title($cnpjData['estabelecimento']['situacao_cadastral']) === "Inapta") {
+                                       
                                                 Notification::make()
                                                     ->title('Atenção!!!')
                                                     ->body('CNPJ com Problema o mesmo encontra-se ' . Str::title($cnpjData['estabelecimento']['situacao_cadastral']))
                                                     ->danger()
+                                                    ->persistent()
                                                     ->send();
                                             } else {
                                                 //Dados para tabela de empresa
@@ -132,62 +136,41 @@ class CompanyResource extends Resource
                                                         ->title('Atenção!!!')
                                                         ->body('Empresa enquadrada no MEI, Não faz parte do nosso escopo')
                                                         ->danger()
+                                                        ->persistent()
                                                         ->send();
+
                                                 } elseif ($cnpjData['simples']['mei'] === "Não" && $cnpjData['simples']['simples'] === "Não") {
                                                     $set('released', "Sim");
                                                     Notification::make()
                                                         ->title('Liberado!!!')
                                                         ->body('Empresa liberada para Contato')
                                                         ->success()
+                                                        ->persistent()
                                                         ->send();
                                                 } else {
-
                                                     $query = PermittedActivitie::select('name')->where('name', '=', $cnpjData['estabelecimento']['atividade_principal']['subclasse'])->first();
-
+                                                    
                                                     if ($query === null) {
-
-                                                        foreach ($cnpjData['estabelecimento']['atividades_secundarias'] as $value) {
-                                                            $query = PermittedActivitie::select('name')->where('name', '=', $value['subclasse'])->first();
-
-                                                            if ($query === null) {
-                                                                $set('released', "Não");
-                                                                $cnae = $value['subclasse'];
-                                                                $valida_cnae = false;
-                                                            } else {
-                                                                $set('released', "Sim");
-                                                                $cnae = $value['subclasse'];
-                                                                $valida_cnae = true;
-                                                                break;
-                                                            }
-                                                        }
-
-                                                        if ($valida_cnae === false) {
-                                                            $set('released', "Não");
-                                                            Notification::make()
-                                                                ->title('Atenção!!!')
-                                                                ->body('nenhum CNAE se enquadrado no anexo IV')
-                                                                ->danger()
-                                                                ->send();
-                                                        } else {
-                                                            $set('released', "Sim");
-                                                            Notification::make()
-                                                                ->title('Liberado!!!')
-                                                                ->body('Empresa Possui CNAE no Anexo IV ' . ' - ' . $cnae)
-                                                                ->success()
-                                                                ->send();
-                                                        }
-                                                    } else {
+                                                        $set('released', "Não");
+                                                        Notification::make()
+                                                        ->title('Atenção!!!')
+                                                        ->body('Empresa não possui CNAE Pincipal no Anexo IV')
+                                                        ->danger()
+                                                        ->persistent()
+                                                        ->send();
+                                                 
+                                                    }else{                                                     
                                                         $set('released', "Sim");
                                                         Notification::make()
-                                                            ->title('Liberado!!!')
+                                                            ->title('Liberado!!!')    
                                                             ->body('Empresa Possui CNAE Pincipal no Anexo IV ' . ' - ' . $cnpjData['estabelecimento']['atividade_principal']['subclasse'])
                                                             ->success()
-                                                            ->send();
+                                                            ->persistent()
+                                                            ->send();                                        
                                                     }
                                                 }
                                                 //dados para tabela de Atividades secundarias da empresa
                                                 foreach ($cnpjData['estabelecimento']['atividades_secundarias'] as $key => $value) {
-
                                                     $set("secondary_activities.secondary_activitie.{$value['subclasse']}", $value['descricao']);
                                                 }
                                             }
@@ -195,6 +178,7 @@ class CompanyResource extends Resource
                                             Notification::make()
                                                 ->title('CNPJ inválido')
                                                 ->danger()
+                                                ->persistent()
                                                 ->send();
                                         }
                                     })
@@ -334,7 +318,6 @@ class CompanyResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            
             ->columns([
                 TextColumn::make('released')
                     ->label('Apta para Contato')
@@ -368,10 +351,7 @@ class CompanyResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
+                    ->label('Consultado em')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -390,8 +370,7 @@ class CompanyResource extends Resource
                     ->preload()
                     ->options([
                         User::query()->pluck('name', 'id')->toArray()
-                    ])
-                
+                    ]),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
